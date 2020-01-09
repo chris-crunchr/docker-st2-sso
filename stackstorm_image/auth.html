@@ -1,0 +1,38 @@
+<html>
+  <script>
+    base = `${window.location.protocol || 'https:'}//${window.location.host}`;
+
+    http = new XMLHttpRequest();
+    http.onreadystatechange = e => {
+      if (http.readyState == 4) {
+        result = JSON.parse(http.responseText);
+
+        if (http.status == 201) {
+          data = {
+            server: {
+              api: `${base}/api`,
+              auth: `${base}/auth`,
+              stream: `${base}/stream`,
+              token: null
+            },
+            token: result
+          };
+
+          window.localStorage.setItem('st2Session', JSON.stringify(data));
+          document.cookie = "auth-token"; // Needed to prevent loop
+          window.location.replace(base + '/index.html');
+        } else {
+          console.log(http);
+          document.getElementById("message").innerText = `Error while retrieving token: ${result.faultstring}`;
+        }
+      }
+    }
+
+    http.open("POST", `${base}/auth/tokens`);
+    http.setRequestHeader("Content-Type", "application/json");
+    http.send();
+  </script>
+  <body>
+    <div id="message">Retrieving authorization token, redirecting when done...</div>
+  </body>
+</html>
